@@ -66,24 +66,35 @@
 
   body > svg{ pointer-events:none !important; }
 
-  /* ============ SECTION SYSTEM (safe-area aware) ============ */
+  /* ============ SECTION SYSTEM (safe-center fix) ============ */
   .section{
-    position:fixed;
-    top:0; right:0; bottom:0; left:0;
+    position:fixed; inset:0;
     display:flex; flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;         /* fallback */
     overflow-y:auto; overflow-x:hidden;
     opacity:0; visibility:hidden; pointer-events:none;
     transition:opacity .9s ease, visibility .9s ease;
     z-index:1;
     -webkit-overflow-scrolling:touch;
-    /* respect notches / home indicator */
-    padding-top:env(safe-area-inset-top);
-    padding-right:env(safe-area-inset-right);
-    padding-bottom:env(safe-area-inset-bottom);
-    padding-left:env(safe-area-inset-left);
+    padding-top:max(1rem, env(safe-area-inset-top));
+    padding-right:max(.5rem, env(safe-area-inset-right));
+    padding-bottom:max(1rem, env(safe-area-inset-bottom));
+    padding-left:max(.5rem, env(safe-area-inset-left));
+  }
+  /* Modern browsers: safe center = center kalau fit, top kalau overflow */
+  @supports (justify-content: safe center){
+    .section{ justify-content: safe center; }
   }
   .section.active{
     opacity:1; visibility:visible; pointer-events:auto; z-index:5;
+  }
+  /* Inner wrapper agar tidak overflow */
+  .section > .m-auto{
+    flex:0 0 auto;
+    min-height:0;
+    max-width:100%;
+    width:100%;
   }
 
   .reveal{
@@ -162,8 +173,6 @@
     0%,100%{ transform:rotate(var(--r,0deg)) translateY(0); }
     50%    { transform:rotate(calc(var(--r,0deg) + 7deg)) translateY(-12px); }
   }
-  /* keep deco from causing horizontal scroll on tiny screens */
-  .section{ position:fixed; }
 
   /* ============ SECTION 1 — LOCK ============ */
   .lock-card{
@@ -345,7 +354,6 @@
     }
   }
 
-  /* bottom "Open Your Letter" button respects safe area */
   #s2 .letter-btn-wrap{
     padding-bottom:calc(2rem + env(safe-area-inset-bottom));
   }
@@ -356,16 +364,18 @@
     background:linear-gradient(180deg,#FFFDFE,#FFF4F9);
     border:1px solid rgba(212,175,55,.38);
     border-radius:22px;
-    padding:clamp(2rem, 6vw, 3.4rem) clamp(1.1rem, 5vw, 3rem) clamp(1.6rem, 5vw, 2.75rem);
+    padding:clamp(1.75rem, 5.5vw, 3.4rem) clamp(1rem, 4.5vw, 3rem) clamp(1.5rem, 4.5vw, 2.75rem);
     box-shadow:
       0 34px 80px -34px rgba(232,127,168,.6),
       0 8px 26px -14px rgba(232,127,168,.35),
       inset 0 1px 0 rgba(255,255,255,.95);
-    overflow:visible;
+    overflow:hidden;                /* ⭐ mencegah konten keluar */
+    max-width:100%;
+    width:100%;
   }
   .letter::before{
     content:'';
-    position:absolute; inset:9px;
+    position:absolute; inset:8px;
     border:1px dashed rgba(212,175,55,.28);
     border-radius:14px;
     pointer-events:none;
@@ -374,17 +384,18 @@
   .letter-body p{
     font-family:'Playfair Display', serif;
     font-size:clamp(13.5px, 3.6vw, 17px);
-    line-height:1.9;
+    line-height:1.85;
     color:#7A3A5A;
     overflow-wrap:anywhere;
     word-break:break-word;
+    max-width:100%;
   }
-  .letter-body p + p{ margin-top:1.1rem; }
+  .letter-body p + p{ margin-top:1rem; }
 
   .letter-signoff{
     font-family:'Playfair Display', serif;
     font-size:clamp(14px, 3.8vw, 17px);
-    line-height:1.9;
+    line-height:1.85;
     color:#7A3A5A;
     font-weight:600;
     overflow-wrap:anywhere;
@@ -396,24 +407,26 @@
     justify-content:space-between;
     align-items:flex-end;
     gap:clamp(.75rem, 3vw, 1.25rem);
-    margin-top:2rem;
-    padding-top:1.5rem;
+    margin-top:1.75rem;
+    padding-top:1.25rem;
     border-top:1px dashed rgba(212,175,55,.35);
-    flex-wrap:wrap;         /* wraps naturally on tiny screens */
+    flex-wrap:wrap;
+    width:100%;
   }
   .letter-footer .signature-block{
     text-align:right;
-    flex:0 1 auto;
+    flex:1 1 auto;
+    min-width:0;
     padding-bottom:.25rem;
-    margin-left:auto;       /* stays right-aligned when wrapped */
+    word-break:break-word;
   }
 
   /* Mochigoma stamp */
   .stamp-wrapper{
     position:relative;
     display:block;
-    width:clamp(84px, 24vw, 110px);
-    height:clamp(84px, 24vw, 110px);
+    width:clamp(80px, 22vw, 110px);
+    height:clamp(80px, 22vw, 110px);
     margin:0;
     flex:0 0 auto;
     z-index:1;
@@ -430,7 +443,7 @@
   .stamp-wrapper::before{
     content:'';
     position:absolute;
-    inset:clamp(-14px, -3.5vw, -16px);
+    inset:-14px;
     border:2px dashed rgba(201,162,39,.62);
     border-radius:50%;
     pointer-events:none;
@@ -438,8 +451,7 @@
   }
   .stamp-wrapper::after{
     content:'';
-    position:absolute;
-    inset:2px;
+    position:absolute; inset:2px;
     border:1.2px solid rgba(201,162,39,.48);
     border-radius:50%;
     pointer-events:none;
@@ -451,37 +463,31 @@
   .stamp-wrapper .tenor-gif-embed,
   .stamp-wrapper .mochigoma-sticker{
     position:static !important;
-    width:100% !important;
-    max-width:100% !important;
-    height:100% !important;
-    margin:0 !important;
-    border-radius:50%;
-    overflow:hidden;
+    width:100% !important; max-width:100% !important;
+    height:100% !important; margin:0 !important;
+    border-radius:50%; overflow:hidden;
     transform:none !important;
-    bottom:auto !important;
-    right:auto !important;
+    bottom:auto !important; right:auto !important;
     filter:none !important;
   }
   .stamp-wrapper iframe{
-    width:100% !important;
-    height:100% !important;
-    display:block;
-    border:0;
-    border-radius:50%;
+    width:100% !important; height:100% !important;
+    display:block; border:0; border-radius:50%;
     clip-path:circle(50%);
   }
 
-  /* On very narrow phones, stack stamp + signature */
-  @media (max-width:480px){
+  /* iPhone & layar kecil: stack stamp + signature */
+  @media (max-width:520px){
     .letter-footer{
-      flex-direction:column;
-      align-items:flex-start;
-      gap:1.25rem;
+      flex-direction:column-reverse;
+      align-items:center;
+      gap:1.5rem;
+      padding-top:1.5rem;
     }
     .letter-footer .signature-block{
-      text-align:right;
-      align-self:flex-end;
-      margin-left:0;
+      text-align:center;
+      align-self:center;
+      width:100%;
       padding-bottom:0;
     }
   }
@@ -538,7 +544,6 @@
     animation:giftPulse 2.2s ease-in-out infinite;
     filter:drop-shadow(0 22px 26px rgba(232,127,168,.5));
     transition:filter .3s;
-    container-type:inline-size;
   }
   .gift-box:hover{ filter:drop-shadow(0 30px 34px rgba(212,175,55,.6)); }
   @keyframes giftPulse{
@@ -644,7 +649,6 @@
     max-width:100%;
   }
 
-  /* Responsive widths — fit 4 across on tablets, full row on desktop */
   .polaroid.portrait  { width:clamp(150px, 19vw, 210px); }
   .polaroid.landscape { width:clamp(210px, 26vw, 310px); }
 
@@ -692,13 +696,11 @@
   }
   .polaroid:hover .photo img{ transform:scale(1.06); }
 
-  /* Tablet: tighten overlap */
   @media (max-width:1024px) and (min-width:769px){
     .polaroid-2{ margin-left:-16px; }
     .polaroid-3{ margin-left:-8px; }
   }
 
-  /* Mobile: vertical zig-zag scrapbook */
   @media (max-width:768px){
     .scrapbook{
       flex-direction:column;
@@ -736,9 +738,7 @@
   .section::-webkit-scrollbar{ width:6px; }
   .section::-webkit-scrollbar-thumb{ background:rgba(249,184,208,.55); border-radius:99px; }
 
-  /* ============================================================
-     SHORT VIEWPORTS — landscape phones, small laptops
-  ============================================================ */
+  /* ============ SHORT VIEWPORTS — landscape phones ============ */
   @media (max-height:520px) and (orientation:landscape){
     .section > .m-auto{ padding-top:1rem !important; padding-bottom:1rem !important; }
     #heartText p { font-size:clamp(.95rem, 3.5vw, 1.6rem); }
@@ -750,7 +750,6 @@
     .btn{ padding:.7rem 1.4rem; font-size:.85rem; }
   }
 
-  /* Respect reduced motion */
   @media (prefers-reduced-motion: reduce){
     *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.15s !important; }
   }
@@ -1285,7 +1284,6 @@ const HEART_BTN_DELAY    = 5400;
 
 function buildHeart(){
   const N     = 110;
-  // ⭐ responsive scale, clamped so heart never gets too big/small
   const minDim = Math.min(heartW, heartH);
   const scale = Math.max(6, Math.min(minDim / 40, 34));
   const cx    = heartW / 2;
